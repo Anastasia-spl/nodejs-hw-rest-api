@@ -31,7 +31,7 @@ const signup = async ({ password, email, subscription }) => {
     text: `Thanks for singing up with Contacts App! You must follow this link to verify your email: 
     http://localhost:3000/api/users/verify/${verifyToken}`,
     html: `Thanks for singing up with Contacts App! You must follow this link to verify your email: 
-    http://localhost:3000/api/users/verify/${verifyToken}`,
+    <a href="http://localhost:3000/api/users/verify/${verifyToken}">Verify email</a>`,
   }
 
   try {
