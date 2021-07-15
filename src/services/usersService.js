@@ -26,7 +26,7 @@ const signup = async ({ password, email, subscription }) => {
 
   const msg = {
     to: email,
-    from: 'nastya.polkovnikova99@gmail.com', 
+    from: 'anastasia_p_l@mail.ru', 
     subject: 'Verify your email',
     text: `Thanks for singing up with Contacts App! You must follow this link to verify your email: 
     http://localhost:3000/api/users/verify/${verifyToken}`,
