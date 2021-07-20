@@ -2,8 +2,6 @@ const jwt = require('jsonwebtoken')
 const bcrypt = require('bcrypt')
 const {uid} = require('uid')
 const gravatar = require('gravatar');
-const sgMail = require('@sendgrid/mail');
-sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 const { Users } = require('../db/usersModel')
 const {
@@ -12,7 +10,7 @@ const {
   NotVarifiedError,
   AlreadyVarifiedError
 } = require('../helpers/errors')
-
+const { verificationMailing } = require('../external-assistants/mailings')
 
 const signup = async ({ password, email, subscription }) => {
   const isEmailBooked = await Users.findOne({ email })
@@ -23,26 +21,7 @@ const signup = async ({ password, email, subscription }) => {
   const avatarURL = gravatar.url(email, { s: '250' }, true);
   const newUser = new Users({ password, email, subscription, avatarURL, verifyToken })
   await newUser.save()
-
-  const msg = {
-    to: email,
-    from: 'anastasia_p_l@mail.ru', 
-    subject: 'Verify your email',
-    text: `Thanks for singing up with Contacts App! You must follow this link to verify your email: 
-    http://localhost:3000/api/users/verify/${verifyToken}`,
-    html: `Thanks for singing up with Contacts App! You must follow this link to verify your email: 
-    <a href="http://localhost:3000/api/users/verify/${verifyToken}">Verify email</a>`,
-  }
-
-  try {
-    await sgMail.send(msg);
-  } catch (error) {
-    console.error(error);
-
-    if (error.response) {
-      console.error(error.response.body)
-    }
-  }
+  verificationMailing({email, verifyToken}).catch(console.error)
 }
 
 const login = async ({password, email}) => {
@@ -96,38 +75,20 @@ const verify = async (verifyToken) => {
   if (!user) {
     throw new NotVarifiedError("User not found")
   }
-  user.verifyToken = null
-  user.verify = true
-  await user.save()
+  await user.updateOne({ $set: { verify: true, verifyToken: null } });
 }
 
 const repeatedVerify = async (email) => {
   const user = await Users.findOne(email)
+  if (!user) {
+    throw new NotAuthorizedError(`No user with ${email} found`)
+  }
   if (user.verify) {
     throw new AlreadyVarifiedError('Verification has already been passed')
   }
 
   const verifyToken = user.verifyToken
-
-  const msg = {
-    to: email,
-    from: 'anastasia_p_l@mail.ru', 
-    subject: 'Verify your email',
-    text: `Thanks for singing up with Contacts App! You must follow this link to verify your email: 
-    http://localhost:3000/api/users/verify/${verifyToken}`,
-    html: `Thanks for singing up with Contacts App! You must follow this link to verify your email: 
-    http://localhost:3000/api/users/verify/${verifyToken}`,
-  }
-
-  try {
-    await sgMail.send(msg);
-  } catch (error) {
-    console.error(error);
-
-    if (error.response) {
-      console.error(error.response.body)
-    }
-  }
+  verificationMailing({email, verifyToken}).catch(console.error)
 }
 
 module.exports = {

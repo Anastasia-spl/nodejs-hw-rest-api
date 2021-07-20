@@ -54,8 +54,8 @@ const changeAvatarController = async (req, res) => {
 }
 
 const verifyController = async (req, res) => {
-  const { verificationToken } = req.params
-  await verify(verificationToken)
+  const { verifyToken } = req.params
+  await verify(verifyToken)
   res.json({ message: 'Verification successful'})
 }
 

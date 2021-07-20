@@ -38,7 +38,7 @@ router.post('/logout', authMiddleware, asyncWrapper(logoutController))
 router.get('/current', authMiddleware, asyncWrapper(currentUserController))
 router.patch('/', asyncWrapper(switchSubscriptionController))
 router.patch('/avatars', authMiddleware,  uploadMiddleware.single('avatar'), asyncWrapper(changeAvatarController))
-router.get('/verify/:verificationToken', asyncWrapper(verifyController))
+router.get('/verify/:verifyToken', asyncWrapper(verifyController))
 router.post('/verify', repeatedVerifyValidation, asyncWrapper(repeatedVerifyController))
 
 module.exports = { authRouter: router}
